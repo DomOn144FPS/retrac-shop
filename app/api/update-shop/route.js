@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile, readFile } from 'fs/promises';
-
-const DATA_FILE = '/tmp/shop-data.json';
+import { put } from '@vercel/blob';
 
 export async function POST(request) {
   const secret = request.headers.get('x-secret');
@@ -9,20 +7,35 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   try {
-    const { imageUrl, dateStr, resetTs } = await request.json();
-    if (!imageUrl) return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 });
-    await writeFile(DATA_FILE, JSON.stringify({ imageUrl, dateStr, resetTs, updatedAt: Date.now() }), 'utf8');
-    return NextResponse.json({ ok: true });
+    const { imageBase64, dateStr, resetTs } = await request.json();
+    if (!imageBase64) return NextResponse.json({ error: 'Missing image' }, { status: 400 });
+
+    // Convert base64 to buffer
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Upload to Vercel Blob
+    const blob = await put('shop-latest.png', buffer, {
+      access: 'public',
+      contentType: 'image/png',
+      addRandomSuffix: false,
+    });
+
+    return NextResponse.json({ ok: true, url: blob.url });
   } catch (err) {
+    console.error('update-shop error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
 export async function GET() {
+  // Return the known blob URL (it's always the same since addRandomSuffix: false)
   try {
-    const raw = await readFile(DATA_FILE, 'utf8');
-    return NextResponse.json(JSON.parse(raw));
-  } catch {
-    return NextResponse.json({ imageUrl: null });
-  }
+    const storeId = process.env.BLOB_READ_WRITE_TOKEN?.match(/vercel_blob_rw_([^_]+)/)?.[1]?.toLowerCase();
+    if (storeId) {
+      const url = `https://${storeId}.public.blob.vercel-storage.com/shop-latest.png`;
+      return NextResponse.json({ imageUrl: url });
+    }
+  } catch {}
+  return NextResponse.json({ imageUrl: null });
 }
