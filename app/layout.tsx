@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Retrac Shop — Daily Item Shop',
-  description: 'View the latest Fortnite Item Shop posted by Retrac',
+  title: 'Retrac Item Shop — Daily Item Shop',
+  description: 'View the latest Retrac Item Shop posted by Retrac',
   openGraph: {
-    title: 'Retrac Shop',
-    description: 'Daily Fortnite Item Shop',
+    title: 'Retrac Item Shop',
+    description: 'Daily Retrac Item Shop',
     type: 'website',
   },
 };
