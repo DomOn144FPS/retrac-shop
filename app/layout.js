@@ -1,4 +1,4 @@
-export const metadata = { title: 'Retrac Shop', description: 'Daily Fortnite Item Shop' };
+export const metadata = { title: 'Retrac Shop', description: 'Daily Fortnite Item Shop' }; 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
