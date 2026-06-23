@@ -14,7 +14,7 @@ export async function POST(request) {
     const buffer     = Buffer.from(base64Data, 'base64');
 
     const blob = await put('shop-latest.png', buffer, {
-      access: 'public',
+      access: 'private',
       contentType: 'image/png',
       addRandomSuffix: false,
     });
