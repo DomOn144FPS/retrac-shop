@@ -13,7 +13,7 @@ export async function POST(request) {
     if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 });
 
     const blob = await put('shop-latest.png', file, {
-      access: 'public',
+      access: 'private',
       addRandomSuffix: false,
     });
 
