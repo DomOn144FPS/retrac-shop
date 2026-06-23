@@ -7,6 +7,7 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [authed, setAuthed] = useState(false);
   const [status, setStatus] = useState('');
+  const [statusType, setStatusType] = useState('info'); // 'info' | 'error' | 'success'
   const fileRef = useRef();
   const clicks = useRef(0);
   const timer = useRef(null);
@@ -27,7 +28,7 @@ export default function Home() {
 
   function handleLogin(e) {
     e.preventDefault();
-    if (password === 'retrac123') {
+    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD || password === 'retrac123') {
       setAuthed(true); setShowLogin(false); setPassword('');
     } else {
       setPassword(''); alert('Wrong password');
@@ -37,18 +38,38 @@ export default function Home() {
   async function uploadImage(file) {
     if (!file || !file.type.startsWith('image/')) return;
     setStatus('Uploading…');
+    setStatusType('info');
     try {
       const form = new FormData();
       form.append('file', file);
-      form.append('secret', 'retrac123');
+      // Use NEXT_PUBLIC_VERCEL_SECRET env var if set, otherwise fall back to default
+      form.append('secret', process.env.NEXT_PUBLIC_VERCEL_SECRET || 'retrac123');
       const res  = await fetch('/api/upload', { method: 'POST', body: form });
       const data = await res.json();
-      if (data.url) { setImageUrl(data.url); setStatus(''); }
-      else setStatus('Upload failed: ' + (data.error || 'unknown'));
+      if (res.ok && data.url) {
+        setImageUrl(data.url + '?t=' + Date.now()); // bust cache
+        setStatus('✓ Shop image updated!');
+        setStatusType('success');
+        setTimeout(() => setStatus(''), 3000);
+      } else {
+        const msg = data.error || `HTTP ${res.status}`;
+        setStatus('Upload failed: ' + msg);
+        setStatusType('error');
+        console.error('Upload error:', msg);
+      }
     } catch (err) {
       setStatus('Upload failed: ' + err.message);
+      setStatusType('error');
+      console.error('Upload exception:', err);
     }
   }
+
+  const statusColors = {
+    info:    { bg: 'rgba(0,0,0,0.8)',    border: '#333',    color: '#fff' },
+    success: { bg: 'rgba(0,80,40,0.9)',  border: '#00ff88', color: '#00ff88' },
+    error:   { bg: 'rgba(80,0,0,0.9)',   border: '#ff4444', color: '#ff6666' },
+  };
+  const sc = statusColors[statusType];
 
   return (
     <div
@@ -63,7 +84,7 @@ export default function Home() {
       }
 
       {status && (
-        <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.8)', border: '1px solid #333', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontSize: '14px', fontFamily: 'sans-serif' }}>
+        <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', background: sc.bg, border: `1px solid ${sc.border}`, borderRadius: '8px', padding: '8px 16px', color: sc.color, fontSize: '14px', fontFamily: 'sans-serif', whiteSpace: 'nowrap' }}>
           {status}
         </div>
       )}
