@@ -79,7 +79,7 @@ export default function Home() {
       onClick={() => { if (authed) fileRef.current?.click(); }}
     >
       {imageUrl
-        ? <img src={imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+        ? <img src={imageUrl} alt="" draggable="false" onMouseDown={e => e.preventDefault()} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', userSelect: 'none', pointerEvents: 'none' }} />
         : <div style={{ width: '100%', height: '100%', background: '#000' }} />
       }
 
