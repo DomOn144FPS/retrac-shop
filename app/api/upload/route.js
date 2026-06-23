@@ -7,7 +7,9 @@ export async function POST(request) {
     const secret = form.get('secret');
     const file   = form.get('file');
 
-    if (secret !== process.env.VERCEL_SECRET) {
+    // Accept either the env var secret OR the hardcoded fallback
+    const validSecret = process.env.VERCEL_SECRET || 'retrac123';
+    if (secret !== validSecret) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 });
